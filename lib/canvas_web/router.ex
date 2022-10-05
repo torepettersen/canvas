@@ -17,7 +17,7 @@ defmodule CanvasWeb.Router do
   scope "/", CanvasWeb do
     pipe_through :browser
 
-    get "/", PageController, :index
+    live "/", CanvasLive
   end
 
   # Other scopes may use custom stacks.

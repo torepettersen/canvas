@@ -1,0 +1,6 @@
+{
+  "dependencies": {
+    "alpinejs": "^3.10.3",
+    "fabric": "^5.2.4"
+  }
+}
