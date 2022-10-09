@@ -1,6 +1,13 @@
 {
   "dependencies": {
     "alpinejs": "^3.10.3",
-    "fabric": "^5.2.4"
+    "fabric": "^5.2.4",
+    "phoenix": "file:../deps/phoenix",
+    "phoenix_html": "file:../deps/phoenix_html",
+    "phoenix_live_view": "file:../deps/phoenix_live_view",
+    "wasm": "file:./wasm/pkg"
+  },
+  "devDependencies": {
+    "esbuild": "^0.15.10"
   }
 }

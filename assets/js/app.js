@@ -26,6 +26,7 @@ import { Socket } from "phoenix"
 import { LiveSocket } from "phoenix_live_view"
 import topbar from "../vendor/topbar"
 import Fabric from "./fabric"
+import Editor from "./editor"
 import Alpine from "alpinejs"
 
 // Init alpinejs
@@ -35,7 +36,7 @@ Alpine.start()
 let csrfToken = document.querySelector("meta[name='csrf-token']").getAttribute("content")
 let liveSocket = new LiveSocket("/live", Socket, {
   params: { _csrf_token: csrfToken },
-  hooks: { Fabric },
+  hooks: { Fabric, Editor },
   dom: {
     onBeforeElUpdated(from, to) {
       if (from._x_dataStack) {

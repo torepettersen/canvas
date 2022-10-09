@@ -32,3 +32,7 @@ canvas-*.tar
 npm-debug.log
 /assets/node_modules/
 
+#wasm
+/assets/wasm/target
+/assets/wasm/pkg
+
