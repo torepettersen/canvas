@@ -1,44 +1,48 @@
-
-use crate::events::Point;
+use crate::layers::Layer;
+use crate::layers::Point;
 use std::cell::RefCell;
 use std::rc::Rc;
-use wasm_bindgen::JsCast;
 use wasm_bindgen::prelude::*;
+use wasm_bindgen::JsCast;
+use web_sys::window;
 use web_sys::CanvasRenderingContext2d;
 use web_sys::HtmlCanvasElement;
 use web_sys::MouseEvent;
-use web_sys::window;
 
 pub struct State {
     canvas: HtmlCanvasElement,
     context: CanvasRenderingContext2d,
-    closures: Vec<Closure<dyn FnMut(MouseEvent)>>,
+    pub layers: Vec<Layer>,
+    pub active_layer: Option<usize>,
+    pub _closuers: Vec<Closure<dyn FnMut(MouseEvent)>>,
     pub mouse_start: Option<Point>,
 }
 
 impl State {
-    pub fn new(canvas_id: &str) -> Result<Rc<RefCell<State>>, JsValue> {
+    pub fn new(canvas_id: &str) -> Result<State, JsValue> {
         let canvas = Self::init_canvas(canvas_id)?;
         let context = Self::init_context(&canvas)?;
 
-        Ok(Rc::new(RefCell::new(State {
+        Ok(State {
             canvas: canvas,
             context: context,
-            closures: Vec::new(),
+            layers: Vec::new(),
+            active_layer: None,
+            _closuers: Vec::new(),
             mouse_start: None,
-        })))
+        })
     }
-    
+
+    pub fn to_ptr(self) -> Rc<RefCell<State>> {
+        Rc::new(RefCell::new(self))
+    }
+
     pub fn canvas(&self) -> &HtmlCanvasElement {
         &self.canvas
     }
 
     pub fn context(&self) -> &CanvasRenderingContext2d {
         &self.context
-    }
-
-    pub fn add_closure(&mut self, closure: Closure<dyn FnMut(MouseEvent)>) {
-        self.closures.push(closure);
     }
 
     fn init_canvas(canvas_id: &str) -> Result<HtmlCanvasElement, JsValue> {

@@ -1,23 +1,24 @@
 mod events;
+mod layers;
 mod state;
 
-use events::Events;
 use state::State;
+use std::cell::RefCell;
+use std::rc::Rc;
 use wasm_bindgen::prelude::*;
 
 #[wasm_bindgen]
 pub struct Editor {
-    _events: Events,
+    _state: Rc<RefCell<State>>,
 }
 
 #[wasm_bindgen]
 impl Editor {
-    pub fn new(canvas_id: &str) -> Result<Editor, JsValue> {
-        let state = State::new(canvas_id)?;
+    fn new(canvas_id: &str) -> Result<Editor, JsValue> {
+        let state = State::new(canvas_id)?.to_ptr();
+        events::init(&state);
 
-        let editor = Editor {
-            _events: Events::new(&state),
-        };
+        let editor = Editor { _state: state.clone() };
 
         let state = state.borrow();
         let canvas = state.canvas();
@@ -28,4 +29,9 @@ impl Editor {
 
         Ok(editor)
     }
+}
+
+#[wasm_bindgen]
+pub fn start_editor(canvas_id: &str) -> Result<Editor, JsValue> {
+    Editor::new(canvas_id)
 }
