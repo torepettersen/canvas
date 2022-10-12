@@ -1,15 +1,17 @@
 
 use crate::state::State;
+use std::cell::RefCell;
+use std::rc::Rc;
 
-struct Renderer {
-    state: Rc<RefCell<State>>,
-}
-    
-impl Renderer {
-    pub fn new(state: &Rc<RefCell<State>>) {
-        Renderer {
-            state: state.clone(),
-        }
+pub fn render(state: &Rc<RefCell<State>>) {
+    let state = state.borrow_mut();
+    let canvas = state.canvas();
+    let context = state.context();
+
+    context.begin_path();
+    context.clear_rect(0.0, 0.0, canvas.width().into(), canvas.height().into());
+
+    for layer in &state.layers {
+        layer.object.draw(&context);
     }
-
 }

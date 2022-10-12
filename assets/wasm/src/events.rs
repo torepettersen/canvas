@@ -1,19 +1,13 @@
-use crate::layers;
 use crate::layers::Layer;
-use crate::layers::Point;
+use crate::objects;
+use crate::renderer;
 use crate::state::State;
 use std::cell::RefCell;
 use std::rc::Rc;
-use wasm_bindgen::prelude::*;
 use wasm_bindgen::JsCast;
+use wasm_bindgen::prelude::*;
 use web_sys::HtmlCanvasElement;
 use web_sys::MouseEvent;
-
-macro_rules! log {
-    ( $( $t:tt )* ) => {
-        web_sys::console::log_1(&format!( $( $t )* ).into());
-    }
-}
 
 macro_rules! closure {
     ( { $($x:ident),* }, $y:expr ) => {
@@ -22,6 +16,12 @@ macro_rules! closure {
             $y
         })
     }
+}
+
+#[derive(Clone, Copy, Debug)]
+pub struct Point {
+    pub x: i32,
+    pub y: i32,
 }
 
 pub fn init(state_ref: &Rc<RefCell<State>>) {
@@ -53,19 +53,21 @@ fn on_mousemove(state_ref: &Rc<RefCell<State>>) -> Closure<dyn FnMut(MouseEvent)
             State { mouse_start: Some(mouse_start), active_layer: Some(active_layer), .. } => {
                 let mouse_end = get_mouse_position(state.canvas(), &event);
                 state.layers[active_layer] =
-                    Layer { object: layers::new_rect(mouse_start, mouse_end) };
+                    Layer { object: objects::rect::new(mouse_start, mouse_end) };
                 drop(state);
-                layers::render(&state_ref);
+                renderer::render(&state_ref);
             }
             State { mouse_start: Some(mouse_start), .. } => {
                 let mouse_end = get_mouse_position(state.canvas(), &event);
-                let layer = Layer { object: layers::new_rect(mouse_start, mouse_end) };
+                let layer = Layer { object: objects::rect::new(mouse_start, mouse_end) };
                 state.layers.push(layer);
                 state.active_layer = Some(state.layers.len() - 1);
                 drop(state);
-                layers::render(&state_ref);
+                renderer::render(&state_ref);
             }
-            _ => (),
+            _ => {
+                // let point = get_mouse_position(state.canvas(), &event);
+            }
         };
     })
 }
@@ -76,10 +78,10 @@ fn on_mouseup(state_ref: &Rc<RefCell<State>>) -> Closure<dyn FnMut(MouseEvent)> 
         if let Some(mouse_start) = state.mouse_start {
             state.mouse_start = None;
             let mouse_end = get_mouse_position(state.canvas(), &event);
-            let layer = Layer { object: layers::new_rect(mouse_start, mouse_end) };
+            let layer = Layer { object: objects::rect::new(mouse_start, mouse_end) };
             state.layers.push(layer);
             drop(state);
-            layers::render(&state_ref);
+            renderer::render(&state_ref);
         }
     })
 }

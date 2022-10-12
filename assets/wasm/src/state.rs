@@ -1,5 +1,5 @@
 use crate::layers::Layer;
-use crate::layers::Point;
+use crate::events::Point;
 use std::cell::RefCell;
 use std::rc::Rc;
 use wasm_bindgen::prelude::*;

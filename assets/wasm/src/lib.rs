@@ -1,6 +1,11 @@
 mod events;
 mod layers;
 mod state;
+mod objects;
+mod renderer;
+
+#[macro_use]
+mod macros;
 
 use state::State;
 use std::cell::RefCell;
