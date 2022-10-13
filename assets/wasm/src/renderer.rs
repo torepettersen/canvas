@@ -1,4 +1,3 @@
-
 use crate::state::State;
 use std::cell::RefCell;
 use std::rc::Rc;
@@ -13,5 +12,8 @@ pub fn render(state: &Rc<RefCell<State>>) {
 
     for layer in &state.layers {
         layer.object.draw(&context);
+    }
+    if let Some(outlined_layer) = state.outlined_layer {
+        state.layers[outlined_layer].object.draw_outline(&context);
     }
 }

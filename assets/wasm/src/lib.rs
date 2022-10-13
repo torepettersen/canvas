@@ -1,8 +1,8 @@
 mod events;
 mod layers;
-mod state;
 mod objects;
 mod renderer;
+mod state;
 
 #[macro_use]
 mod macros;
