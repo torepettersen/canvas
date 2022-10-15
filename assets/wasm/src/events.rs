@@ -1,5 +1,5 @@
 use crate::layers::Layer;
-use crate::objects;
+use crate::objects::Rect;
 use crate::renderer;
 use crate::state::State;
 use std::cell::RefCell;
@@ -54,13 +54,13 @@ fn on_mousemove(state_ref: &Rc<RefCell<State>>) -> Closure<dyn FnMut(MouseEvent)
             State { mouse_start: Some(mouse_start), active_layer: Some(active_layer), .. } => {
                 let mouse_end = get_mouse_position(state.canvas(), &event);
                 state.layers[active_layer] =
-                    Layer { object: objects::rect::new(mouse_start, mouse_end) };
+                    Layer { object: Box::new(Rect::new(mouse_start, mouse_end)) };
                 drop(state);
                 renderer::render(&state_ref);
             }
             State { mouse_start: Some(mouse_start), .. } => {
                 let mouse_end = get_mouse_position(state.canvas(), &event);
-                let layer = Layer { object: objects::rect::new(mouse_start, mouse_end) };
+                let layer = Layer { object: Box::new(Rect::new(mouse_start, mouse_end)) };
                 state.layers.push(layer);
                 state.active_layer = Some(state.layers.len() - 1);
                 drop(state);
