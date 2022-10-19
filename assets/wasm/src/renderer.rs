@@ -16,4 +16,7 @@ pub fn render(state: &Rc<RefCell<State>>) {
     if let Some(outlined_layer) = state.outlined_layer {
         state.layers[outlined_layer].object.draw_outline(&context);
     }
+    if let Some(active_layer) = state.active_layer {
+        state.layers[active_layer].object.draw_active(&context);
+    }
 }

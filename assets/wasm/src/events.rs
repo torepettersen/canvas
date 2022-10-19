@@ -20,8 +20,8 @@ macro_rules! closure {
 
 #[derive(Clone, Copy, Debug)]
 pub struct Point {
-    pub x: i32,
-    pub y: i32,
+    pub x: f64,
+    pub y: f64,
 }
 
 pub fn init(state_ref: &Rc<RefCell<State>>) {
@@ -39,11 +39,24 @@ pub fn init(state_ref: &Rc<RefCell<State>>) {
     state._closuers = vec![on_mousedown, on_mouseup, on_mousemove];
 }
 
-fn on_mousedown(state: &Rc<RefCell<State>>) -> Closure<dyn FnMut(MouseEvent)> {
-    closure!({ state }, move |event: MouseEvent| {
-        let mut state = state.borrow_mut();
-        state.mouse_start = Some(get_mouse_position(state.canvas(), &event));
-        state.active_layer = None;
+fn on_mousedown(state_ref: &Rc<RefCell<State>>) -> Closure<dyn FnMut(MouseEvent)> {
+    closure!({ state_ref }, move |event: MouseEvent| {
+        let mut state = state_ref.borrow_mut();
+        match &*state {
+            State {
+                active_corner: Some(active_corner), active_layer: Some(active_layer), ..
+            } => {}
+            State { outlined_layer: Some(outlined_layer), .. } => {
+                state.active_layer = Some(*outlined_layer);
+                state.outlined_layer = None;
+            }
+            _ => {
+                state.mouse_start = Some(get_mouse_position(state.canvas(), &event));
+                state.active_layer = None;
+            }
+        }
+        drop(state);
+        renderer::render(&state_ref);
     })
 }
 
@@ -68,15 +81,45 @@ fn on_mousemove(state_ref: &Rc<RefCell<State>>) -> Closure<dyn FnMut(MouseEvent)
             }
             _ => {
                 let point = get_mouse_position(state.canvas(), &event);
-                let context = state.context();
-                let layer = state
+                let context = state.context().clone();
+                if let Some(active_layer) = state.active_layer {
+                    let maybe_active_corner = state.layers[active_layer]
+                        .object
+                        .corners()
+                        .into_iter()
+                        .find(|corner| corner.is_mouse_over(&context, point));
+                    if let Some(active_corner) = maybe_active_corner {
+                        state
+                            .canvas()
+                            .style()
+                            .set_property("cursor", active_corner.cursor())
+                            .unwrap();
+                        state.active_corner = Some(active_corner);
+                    } else {
+                        state
+                            .canvas()
+                            .style()
+                            .set_property("cursor", "auto")
+                            .unwrap();
+                        state.active_corner = None;
+                    }
+                } else {
+                    state
+                        .canvas()
+                        .style()
+                        .set_property("cursor", "auto")
+                        .unwrap();
+                    state.active_corner = None;
+                }
+
+                let maybe_outlined_layer = state
                     .layers
                     .iter()
                     .rev()
-                    .position(|layer| layer.object.is_mouse_over(context, point))
+                    .position(|layer| layer.object.is_mouse_over(&context, point))
                     .map(|idx| state.layers.len() - 1 - idx);
-                if let Some(layer) = layer {
-                    state.outlined_layer = Some(layer);
+                if let Some(outlined_layer) = maybe_outlined_layer {
+                    state.outlined_layer = Some(outlined_layer);
                     drop(state);
                     renderer::render(&state_ref);
                 } else if state.outlined_layer.is_some() {
@@ -98,7 +141,7 @@ fn on_mouseup(state_ref: &Rc<RefCell<State>>) -> Closure<dyn FnMut(MouseEvent)> 
 fn get_mouse_position(canvas: &HtmlCanvasElement, event: &MouseEvent) -> Point {
     let rect = canvas.get_bounding_client_rect();
     Point {
-        x: event.client_x() - rect.left() as i32,
-        y: event.client_y() - rect.top() as i32,
+        x: event.client_x() as f64 - rect.left(),
+        y: event.client_y() as f64 - rect.top(),
     }
 }
