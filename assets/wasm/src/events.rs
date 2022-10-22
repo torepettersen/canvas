@@ -42,10 +42,16 @@ pub fn init(state_ref: &Rc<RefCell<State>>) {
 fn on_mousedown(state_ref: &Rc<RefCell<State>>) -> Closure<dyn FnMut(MouseEvent)> {
     closure!({ state_ref }, move |event: MouseEvent| {
         let mut state = state_ref.borrow_mut();
+        let point = get_mouse_position(state.canvas(), &event);
         match &*state {
-            State {
-                active_corner: Some(active_corner), active_layer: Some(active_layer), ..
-            } => {}
+            State { active_layer: Some(active_layer), .. } => {
+                let maybe_edge =
+                    state.layers[*active_layer].point_over_edge(state.context(), point);
+                if let Some(edge) = maybe_edge {
+                    crate::log!("{:?}", edge.rect);
+                    state.active_edge = Some(edge)
+                }
+            }
             State { outlined_layer: Some(outlined_layer), .. } => {
                 state.active_layer = Some(*outlined_layer);
                 state.outlined_layer = None;
@@ -63,60 +69,44 @@ fn on_mousedown(state_ref: &Rc<RefCell<State>>) -> Closure<dyn FnMut(MouseEvent)
 fn on_mousemove(state_ref: &Rc<RefCell<State>>) -> Closure<dyn FnMut(MouseEvent)> {
     closure!({ state_ref }, move |event: MouseEvent| {
         let mut state = state_ref.borrow_mut();
-        match *state {
-            State { mouse_start: Some(mouse_start), active_layer: Some(active_layer), .. } => {
-                let mouse_end = get_mouse_position(state.canvas(), &event);
-                state.layers[active_layer] =
-                    Layer { object: Box::new(Rect::new(mouse_start, mouse_end)) };
+        let point = get_mouse_position(state.canvas(), &event);
+        match &mut *state {
+            State { active_edge: Some(edge), active_layer: Some(active_layer), layers, .. } => {
+                layers[*active_layer].object.resize(point, *edge);
                 drop(state);
                 renderer::render(&state_ref);
             }
-            State { mouse_start: Some(mouse_start), .. } => {
-                let mouse_end = get_mouse_position(state.canvas(), &event);
-                let layer = Layer { object: Box::new(Rect::new(mouse_start, mouse_end)) };
-                state.layers.push(layer);
-                state.active_layer = Some(state.layers.len() - 1);
+            State { mouse_start: Some(mouse_start), active_layer: Some(active_layer), layers, .. } => {
+                layers[*active_layer] =
+                    Layer { object: Box::new(Rect::new(*mouse_start, point)) };
+                drop(state);
+                renderer::render(&state_ref);
+            }
+            State { mouse_start: Some(mouse_start), layers, active_layer, .. } => {
+                let layer = Layer { object: Box::new(Rect::new(*mouse_start, point)) };
+                layers.push(layer);
+                *active_layer = Some(layers.len() - 1);
                 drop(state);
                 renderer::render(&state_ref);
             }
             _ => {
-                let point = get_mouse_position(state.canvas(), &event);
                 let context = state.context().clone();
                 if let Some(active_layer) = state.active_layer {
-                    let maybe_active_corner = state.layers[active_layer]
-                        .object
-                        .corners()
-                        .into_iter()
-                        .find(|corner| corner.is_mouse_over(&context, point));
-                    if let Some(active_corner) = maybe_active_corner {
-                        state
-                            .canvas()
-                            .style()
-                            .set_property("cursor", active_corner.cursor())
-                            .unwrap();
-                        state.active_corner = Some(active_corner);
+                    let maybe_edge = state.layers[active_layer].point_over_edge(&context, point);
+                    if let Some(edge) = maybe_edge {
+                        edge.set_cursor(state.canvas())
                     } else {
-                        state
-                            .canvas()
-                            .style()
-                            .set_property("cursor", "auto")
-                            .unwrap();
-                        state.active_corner = None;
+                        set_default_cursor(state.canvas())
                     }
                 } else {
-                    state
-                        .canvas()
-                        .style()
-                        .set_property("cursor", "auto")
-                        .unwrap();
-                    state.active_corner = None;
+                    set_default_cursor(state.canvas())
                 }
 
                 let maybe_outlined_layer = state
                     .layers
                     .iter()
                     .rev()
-                    .position(|layer| layer.object.is_mouse_over(&context, point))
+                    .position(|layer| layer.object.is_point_over(&context, point))
                     .map(|idx| state.layers.len() - 1 - idx);
                 if let Some(outlined_layer) = maybe_outlined_layer {
                     state.outlined_layer = Some(outlined_layer);
@@ -135,6 +125,7 @@ fn on_mousemove(state_ref: &Rc<RefCell<State>>) -> Closure<dyn FnMut(MouseEvent)
 fn on_mouseup(state_ref: &Rc<RefCell<State>>) -> Closure<dyn FnMut(MouseEvent)> {
     closure!({ state_ref }, move |_event: MouseEvent| {
         state_ref.borrow_mut().mouse_start = None;
+        state_ref.borrow_mut().active_edge = None;
     })
 }
 
@@ -144,4 +135,8 @@ fn get_mouse_position(canvas: &HtmlCanvasElement, event: &MouseEvent) -> Point {
         x: event.client_x() as f64 - rect.left(),
         y: event.client_y() as f64 - rect.top(),
     }
+}
+
+fn set_default_cursor(canvas: &HtmlCanvasElement) {
+    canvas.style().set_property("cursor", "auto").unwrap();
 }

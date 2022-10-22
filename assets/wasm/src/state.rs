@@ -1,6 +1,6 @@
 use crate::events::Point;
 use crate::layers::Layer;
-use crate::objects::Corner;
+use crate::objects::Edge;
 use std::cell::RefCell;
 use std::rc::Rc;
 use wasm_bindgen::prelude::*;
@@ -15,7 +15,7 @@ pub struct State {
     context: CanvasRenderingContext2d,
     pub layers: Vec<Layer>,
     pub active_layer: Option<usize>,
-    pub active_corner: Option<Corner>,
+    pub active_edge: Option<Edge>,
     pub outlined_layer: Option<usize>,
     pub _closuers: Vec<Closure<dyn FnMut(MouseEvent)>>,
     pub mouse_start: Option<Point>,
@@ -31,7 +31,7 @@ impl State {
             context: context,
             layers: Vec::new(),
             active_layer: None,
-            active_corner: None,
+            active_edge: None,
             outlined_layer: None,
             mouse_start: None,
             _closuers: Vec::new(),
