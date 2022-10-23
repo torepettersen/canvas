@@ -9,6 +9,8 @@ pub trait Object {
     fn is_point_over(&self, context: &CanvasRenderingContext2d, point: Point) -> bool;
     fn edges(&self) -> Vec<Edge>;
     fn resize(&mut self, point: Point, edge: Edge);
+    fn grab_point(&self, point: Point) -> Point;
+    fn relocate(&mut self, point: Point, grab_point: Point);
     fn top(&self) -> f64;
     fn set_top(&mut self, y: f64);
     fn left(&self) -> f64;
@@ -132,6 +134,16 @@ impl Object for Rect {
             Edge::new(self.bottom_right(), EdgeKind::BottomRight),
             Edge::new(self.bottom_left(), EdgeKind::BottomLeft),
         ]
+    }
+
+    fn grab_point(&self, point: Point) -> Point {
+        point.subtract(self.top_left())
+    }
+
+    fn relocate(&mut self, point: Point, grab_point: Point) {
+        let Point { x, y } = point.subtract(grab_point);
+        self.x = x;
+        self.y = y;
     }
 
     fn top(&self) -> f64 {

@@ -40,7 +40,8 @@ impl Canvas {
         match layers.active_layer() {
             Some(LayerState::CreatingLayer { layer, .. })
             | Some(LayerState::IdleLayer { layer, .. })
-            | Some(LayerState::ResizeLayer { layer, .. }) => {
+            | Some(LayerState::ResizeLayer { layer, .. })
+            | Some(LayerState::RelocateLayer { layer, .. }) => {
                 layers.layers()[*layer].object.draw_active(&context);
             }
             _ => {}

@@ -20,6 +20,12 @@ pub struct Point {
     pub y: f64,
 }
 
+impl Point {
+    pub fn subtract(&self, point: Point) -> Point {
+        Point { x: self.x - point.x, y: self.y - point.y }
+    }
+}
+
 pub enum Event {
     MouseDown { point: Point },
     MouseMove { point: Point },
