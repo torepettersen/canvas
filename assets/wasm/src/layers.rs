@@ -73,13 +73,20 @@ impl Layers {
     fn on_mouse_down(&mut self, point: Point, canvas: &Canvas) {
         match self.active_layer {
             None => {
-                self.active_layer = Some(LayerState::ToCreateLayer { start: point });
+                let maybe_active_layer = self.point_over_layer(point, canvas);
+                if let Some(layer) = maybe_active_layer {
+                    self.active_layer = Some(LayerState::IdleLayer { layer });
+                } else {
+                    self.active_layer = Some(LayerState::ToCreateLayer { start: point });
+                }
                 canvas.render(self);
             }
             Some(LayerState::IdleLayer { layer }) => {
                 let active_layer = &self.layers[layer];
                 if let Some(edge) = active_layer.point_over_edge(canvas, point) {
                     self.active_layer = Some(LayerState::ResizeLayer { layer, edge });
+                } else if let Some(layer) = self.point_over_layer(point, canvas) {
+                    self.active_layer = Some(LayerState::IdleLayer { layer });
                 } else if !active_layer.object.is_point_over(canvas.context(), point) {
                     self.active_layer = None;
                 }
@@ -108,7 +115,7 @@ impl Layers {
             }
             _ => {
                 // Outlined layer
-                let maybe_outlined_layer = self.maybe_outlined_layer(point, canvas);
+                let maybe_outlined_layer = self.point_over_layer(point, canvas);
                 if let Some(outlined_layer) = maybe_outlined_layer {
                     self.outlined_layer = Some(outlined_layer);
                     canvas.render(self);
@@ -154,7 +161,7 @@ impl Layers {
         self.layers.len() - 1
     }
 
-    fn maybe_outlined_layer(&self, point: Point, canvas: &Canvas) -> Option<usize> {
+    fn point_over_layer(&self, point: Point, canvas: &Canvas) -> Option<usize> {
         self.layers
             .iter()
             .rev()
