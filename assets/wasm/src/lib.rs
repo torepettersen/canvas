@@ -1,7 +1,8 @@
+mod canvas;
 mod events;
 mod layers;
 mod objects;
-mod renderer;
+// mod renderer;
 mod state;
 
 #[macro_use]
@@ -20,7 +21,7 @@ pub struct Editor {
 #[wasm_bindgen]
 impl Editor {
     fn new(canvas_id: &str) -> Result<Editor, JsValue> {
-        let state = State::new(canvas_id)?.to_ptr();
+        let state = State::new(canvas_id)?.into();
         events::init(&state);
 
         let editor = Editor { _state: state.clone() };

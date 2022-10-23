@@ -203,10 +203,7 @@ pub struct Edge {
 impl Edge {
     pub fn new(point: Point, kind: EdgeKind) -> Edge {
         let size = 8.0;
-        Edge {
-            rect: Rect::from_center(point, size, size),
-            kind: kind,
-        }
+        Edge { rect: Rect::from_center(point, size, size), kind: kind }
     }
 
     pub fn draw(&self, context: &CanvasRenderingContext2d) {
@@ -218,7 +215,10 @@ impl Edge {
     }
 
     pub fn set_cursor(&self, canvas: &HtmlCanvasElement) {
-        canvas.style().set_property("cursor", &self.cursor()).unwrap();
+        canvas
+            .style()
+            .set_property("cursor", &self.cursor())
+            .unwrap();
     }
 
     fn cursor(&self) -> &str {

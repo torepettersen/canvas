@@ -1,35 +1,36 @@
+use crate::canvas::Canvas;
 use crate::events::Point;
-use crate::layers::Layer;
+use crate::layers::Layers;
 use crate::objects::Edge;
 use std::cell::RefCell;
 use std::rc::Rc;
-use wasm_bindgen::prelude::*;
 use wasm_bindgen::JsCast;
-use web_sys::window;
-use web_sys::CanvasRenderingContext2d;
+use wasm_bindgen::prelude::*;
 use web_sys::HtmlCanvasElement;
 use web_sys::MouseEvent;
+use web_sys::window;
 
 pub struct State {
-    canvas: HtmlCanvasElement,
-    context: CanvasRenderingContext2d,
-    pub layers: Vec<Layer>,
+    old_canvas: HtmlCanvasElement,
+    pub canvas: Rc<RefCell<Canvas>>,
+    pub layers: Rc<RefCell<Layers>>,
     pub active_layer: Option<usize>,
     pub active_edge: Option<Edge>,
+    pub mouse_start: Option<Point>,
     pub outlined_layer: Option<usize>,
     pub _closuers: Vec<Closure<dyn FnMut(MouseEvent)>>,
-    pub mouse_start: Option<Point>,
 }
 
 impl State {
     pub fn new(canvas_id: &str) -> Result<State, JsValue> {
-        let canvas = Self::init_canvas(canvas_id)?;
-        let context = Self::init_context(&canvas)?;
+        let old_canvas = Self::init_canvas(canvas_id)?;
+        let canvas = Canvas::new(canvas_id)?.into();
+        let layers = Layers::new().into();
 
         Ok(State {
-            canvas: canvas,
-            context: context,
-            layers: Vec::new(),
+            canvas,
+            old_canvas,
+            layers,
             active_layer: None,
             active_edge: None,
             outlined_layer: None,
@@ -38,16 +39,8 @@ impl State {
         })
     }
 
-    pub fn to_ptr(self) -> Rc<RefCell<State>> {
-        Rc::new(RefCell::new(self))
-    }
-
     pub fn canvas(&self) -> &HtmlCanvasElement {
-        &self.canvas
-    }
-
-    pub fn context(&self) -> &CanvasRenderingContext2d {
-        &self.context
+        &self.old_canvas
     }
 
     fn init_canvas(canvas_id: &str) -> Result<HtmlCanvasElement, JsValue> {
@@ -61,13 +54,10 @@ impl State {
 
         Ok(canvas)
     }
+}
 
-    fn init_context(canvas: &HtmlCanvasElement) -> Result<CanvasRenderingContext2d, JsValue> {
-        let context = canvas
-            .get_context("2d")?
-            .ok_or("Canvas 2d context not found")?
-            .dyn_into::<CanvasRenderingContext2d>()?;
-
-        Ok(context)
+impl Into<Rc<RefCell<State>>> for State {
+    fn into(self) -> Rc<RefCell<State>> {
+        Rc::new(RefCell::new(self))
     }
 }
