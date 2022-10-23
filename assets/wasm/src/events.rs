@@ -46,7 +46,10 @@ fn on_mousedown(state: &Rc<RefCell<State>>) -> Closure<dyn FnMut(MouseEvent)> {
         let state = state.borrow();
         let canvas = state.canvas.borrow();
         let point = canvas.get_mouse_position(&event);
-        state.layers.borrow_mut().on_event(Event::MouseDown { point }, &canvas);
+        state
+            .layers
+            .borrow_mut()
+            .on_event(Event::MouseDown { point }, &canvas);
     })
 }
 
@@ -55,7 +58,10 @@ fn on_mousemove(state: &Rc<RefCell<State>>) -> Closure<dyn FnMut(MouseEvent)> {
         let state = state.borrow();
         let canvas = state.canvas.borrow();
         let point = canvas.get_mouse_position(&event);
-        state.layers.borrow_mut().on_event(Event::MouseMove { point }, &canvas);
+        state
+            .layers
+            .borrow_mut()
+            .on_event(Event::MouseMove { point }, &canvas);
     })
 }
 
@@ -64,6 +70,9 @@ fn on_mouseup(state: &Rc<RefCell<State>>) -> Closure<dyn FnMut(MouseEvent)> {
         let state = state.borrow();
         let canvas = state.canvas.borrow();
         let point = canvas.get_mouse_position(&event);
-        state.layers.borrow_mut().on_event(Event::MouseUp { point }, &canvas);
+        state
+            .layers
+            .borrow_mut()
+            .on_event(Event::MouseUp { point }, &canvas);
     })
 }

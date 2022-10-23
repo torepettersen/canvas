@@ -41,11 +41,7 @@ pub struct Layers {
 
 impl Layers {
     pub fn new() -> Self {
-        Layers {
-            layers: Vec::new(),
-            active_layer: None,
-            outlined_layer: None,
-        }
+        Layers { layers: Vec::new(), active_layer: None, outlined_layer: None }
     }
 
     pub fn layers(&self) -> &Vec<Layer> {
@@ -65,6 +61,12 @@ impl Layers {
             Event::MouseDown { point } => self.on_mouse_down(point, canvas),
             Event::MouseMove { point } => self.on_mouse_move(point, canvas),
             Event::MouseUp { point } => self.on_mouse_up(point, canvas),
+        }
+
+        match event {
+            Event::MouseDown { point } | Event::MouseMove { point } | Event::MouseUp { point } => {
+                self.set_cursor(point, canvas);
+            }
         }
     }
 
@@ -104,15 +106,6 @@ impl Layers {
                 self.layers[layer].object.resize(point, edge);
                 canvas.render(self);
             }
-            Some(LayerState::IdleLayer { layer }) => {
-                // Change cursor
-                let maybe_edge = self.layers[layer].point_over_edge(canvas, point);
-                if let Some(edge) = maybe_edge {
-                    edge.set_cursor(canvas.canvas())
-                } else {
-                    set_default_cursor(canvas)
-                }
-            }
             _ => {
                 // Outlined layer
                 let maybe_outlined_layer = self.maybe_outlined_layer(point, canvas);
@@ -123,9 +116,6 @@ impl Layers {
                     self.outlined_layer = None;
                     canvas.render(self);
                 }
-
-                // Change cursor
-                set_default_cursor(canvas)
             }
         }
     }
@@ -145,13 +135,27 @@ impl Layers {
         }
     }
 
+    fn set_cursor(&self, point: Point, canvas: &Canvas) {
+        match self.active_layer {
+            Some(LayerState::IdleLayer { layer }) => {
+                let maybe_edge = self.layers[layer].point_over_edge(canvas, point);
+                if let Some(edge) = maybe_edge {
+                    edge.set_cursor(canvas.canvas())
+                } else {
+                    set_default_cursor(canvas)
+                }
+            }
+            Some(LayerState::ResizeLayer { edge, .. }) => edge.set_cursor(canvas.canvas()),
+            _ => set_default_cursor(canvas),
+        }
+    }
+
     fn last_item(&self) -> usize {
         self.layers.len() - 1
     }
 
     fn maybe_outlined_layer(&self, point: Point, canvas: &Canvas) -> Option<usize> {
-        self
-            .layers
+        self.layers
             .iter()
             .rev()
             .position(|layer| layer.object.is_point_over(canvas.context(), point))
@@ -166,5 +170,9 @@ impl Into<Rc<RefCell<Layers>>> for Layers {
 }
 
 fn set_default_cursor(canvas: &Canvas) {
-    canvas.canvas().style().set_property("cursor", "auto").unwrap();
+    canvas
+        .canvas()
+        .style()
+        .set_property("cursor", "auto")
+        .unwrap();
 }

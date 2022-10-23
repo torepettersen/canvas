@@ -1,14 +1,14 @@
+use crate::events::Point;
 use crate::layers::LayerState;
 use crate::layers::Layers;
-use crate::events::Point;
 use std::cell::RefCell;
 use std::rc::Rc;
 use wasm_bindgen::JsCast;
 use wasm_bindgen::JsValue;
+use web_sys::window;
 use web_sys::CanvasRenderingContext2d;
 use web_sys::HtmlCanvasElement;
 use web_sys::MouseEvent;
-use web_sys::window;
 
 pub struct Canvas {
     canvas: HtmlCanvasElement,
@@ -18,7 +18,7 @@ pub struct Canvas {
 impl Canvas {
     pub fn new(canvas_id: &str) -> Result<Self, JsValue> {
         let canvas = init_canvas(canvas_id)?;
-        let context  = init_context(&canvas)?;
+        let context = init_context(&canvas)?;
         Ok(Canvas { canvas, context })
     }
 
@@ -62,7 +62,6 @@ impl Canvas {
             y: event.client_y() as f64 - rect.top(),
         }
     }
-
 }
 
 impl Into<Rc<RefCell<Canvas>>> for Canvas {

@@ -4,11 +4,11 @@ use crate::layers::Layers;
 use crate::objects::Edge;
 use std::cell::RefCell;
 use std::rc::Rc;
-use wasm_bindgen::JsCast;
 use wasm_bindgen::prelude::*;
+use wasm_bindgen::JsCast;
+use web_sys::window;
 use web_sys::HtmlCanvasElement;
 use web_sys::MouseEvent;
-use web_sys::window;
 
 pub struct State {
     old_canvas: HtmlCanvasElement,
