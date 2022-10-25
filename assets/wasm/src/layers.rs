@@ -1,7 +1,7 @@
 use crate::canvas::Canvas;
 use crate::events::Event;
 use crate::events::Point;
-use crate::iter_ext::IterExt;
+
 use crate::objects::Edge;
 use crate::objects::Object;
 use crate::objects::Rect;
@@ -18,7 +18,7 @@ impl Layer {
         self.object
             .edges()
             .into_iter()
-            .find(|edge| edge.is_point_over(&context, point))
+            .find(|edge| edge.is_point_over(context, point))
     }
 }
 

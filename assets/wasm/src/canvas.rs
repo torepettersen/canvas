@@ -35,14 +35,14 @@ impl Canvas {
         if let Some(outlined_layer) = layers.outlined_layer() {
             layers.layers()[*outlined_layer]
                 .object
-                .draw_outline(&context);
+                .draw_outline(context);
         }
         match layers.active_layer() {
             Some(LayerState::CreatingLayer { layer, .. })
             | Some(LayerState::IdleLayer { layer, .. })
             | Some(LayerState::ResizeLayer { layer, .. })
             | Some(LayerState::RelocateLayer { layer, .. }) => {
-                layers.layers()[*layer].object.draw_active(&context);
+                layers.layers()[*layer].object.draw_active(context);
             }
             _ => {}
         }

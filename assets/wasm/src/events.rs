@@ -33,9 +33,9 @@ pub enum Event {
 }
 
 pub fn init(state_ref: &Rc<RefCell<State>>) {
-    let on_mousedown = on_mousedown(&state_ref);
-    let on_mouseup = on_mouseup(&state_ref);
-    let on_mousemove = on_mousemove(&state_ref);
+    let on_mousedown = on_mousedown(state_ref);
+    let on_mouseup = on_mouseup(state_ref);
+    let on_mousemove = on_mousemove(state_ref);
 
     let mut state = state_ref.borrow_mut();
 

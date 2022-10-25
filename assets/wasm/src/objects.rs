@@ -70,7 +70,7 @@ impl Rect {
     pub fn from_center(center: Point, width: f64, height: f64) -> Rect {
         let x = center.x - width / 2.0;
         let y = center.y - height / 2.0;
-        Rect { x: x, y: y, width: width, height: height }
+        Rect { x, y, width, height }
     }
 
     pub fn top_left(&self) -> Point {
@@ -124,7 +124,7 @@ impl Object for Rect {
     fn is_point_over(&self, context: &CanvasRenderingContext2d, point: Point) -> bool {
         context.begin_path();
         context.rect(self.x, self.y, self.width, self.height);
-        context.is_point_in_path_with_f64(point.x.into(), point.y.into())
+        context.is_point_in_path_with_f64(point.x, point.y)
     }
 
     fn edges(&self) -> Vec<Edge> {
@@ -215,7 +215,7 @@ pub struct Edge {
 impl Edge {
     pub fn new(point: Point, kind: EdgeKind) -> Edge {
         let size = 8.0;
-        Edge { rect: Rect::from_center(point, size, size), kind: kind }
+        Edge { rect: Rect::from_center(point, size, size), kind }
     }
 
     pub fn draw(&self, context: &CanvasRenderingContext2d) {
@@ -229,7 +229,7 @@ impl Edge {
     pub fn set_cursor(&self, canvas: &HtmlCanvasElement) {
         canvas
             .style()
-            .set_property("cursor", &self.cursor())
+            .set_property("cursor", self.cursor())
             .unwrap();
     }
 
