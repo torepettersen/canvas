@@ -23,11 +23,11 @@ impl Layer {
 }
 
 pub enum LayerState {
-    ToCreateLayer { start: Point },
-    CreatingLayer { layer: usize, start: Point },
-    IdleLayer { layer: usize },
-    ResizeLayer { layer: usize, edge: Edge },
-    RelocateLayer { layer: usize, grab_point: Point },
+    ToCreate { start: Point },
+    Creating { layer: usize, start: Point },
+    Idle { layer: usize },
+    Resize { layer: usize, edge: Edge },
+    Relocate { layer: usize, grab_point: Point },
 }
 
 pub struct Layers {
@@ -72,19 +72,19 @@ impl Layers {
             None => {
                 let maybe_active_layer = self.find_layer_from_point(point, canvas);
                 if let Some(layer) = maybe_active_layer {
-                    self.active_layer = Some(LayerState::IdleLayer { layer });
+                    self.active_layer = Some(LayerState::Idle { layer });
                 } else {
-                    self.active_layer = Some(LayerState::ToCreateLayer { start: point });
+                    self.active_layer = Some(LayerState::ToCreate { start: point });
                 }
                 canvas.render(self);
             }
-            Some(LayerState::IdleLayer { layer }) => {
+            Some(LayerState::Idle { layer }) => {
                 let active_layer = &self.layers[layer];
                 if let Some(edge) = active_layer.point_over_edge(canvas, point) {
-                    self.active_layer = Some(LayerState::ResizeLayer { layer, edge });
+                    self.active_layer = Some(LayerState::Resize { layer, edge });
                 } else if let Some(layer) = self.find_layer_from_point(point, canvas) {
                     let grab_point = self.layers[layer].object.grab_point(point);
-                    self.active_layer = Some(LayerState::RelocateLayer { layer, grab_point });
+                    self.active_layer = Some(LayerState::Relocate { layer, grab_point });
                 } else {
                     self.active_layer = None;
                 }
@@ -96,22 +96,22 @@ impl Layers {
 
     fn on_mouse_move(&mut self, point: Point, canvas: &Canvas) {
         match self.active_layer {
-            Some(LayerState::ToCreateLayer { start }) => {
+            Some(LayerState::ToCreate { start }) => {
                 self.layers
                     .push(Layer { object: Box::new(Rect::new(start, point)) });
                 let layer = self.layers.len() - 1;
-                self.active_layer = Some(LayerState::CreatingLayer { layer, start });
+                self.active_layer = Some(LayerState::Creating { layer, start });
                 canvas.render(self);
             }
-            Some(LayerState::CreatingLayer { layer, start }) => {
+            Some(LayerState::Creating { layer, start }) => {
                 self.layers[layer] = Layer { object: Box::new(Rect::new(start, point)) };
                 canvas.render(self);
             }
-            Some(LayerState::ResizeLayer { layer, edge }) => {
+            Some(LayerState::Resize { layer, edge }) => {
                 self.layers[layer].object.resize(point, edge);
                 canvas.render(self);
             }
-            Some(LayerState::RelocateLayer { layer, grab_point }) => {
+            Some(LayerState::Relocate { layer, grab_point }) => {
                 self.layers[layer].object.relocate(point, grab_point);
                 canvas.render(self);
             }
@@ -131,13 +131,13 @@ impl Layers {
 
     fn on_mouse_up(&mut self, _point: Point, _canvas: &Canvas) {
         match self.active_layer {
-            Some(LayerState::ToCreateLayer { .. }) => {
+            Some(LayerState::ToCreate { .. }) => {
                 self.active_layer = None;
             }
-            Some(LayerState::CreatingLayer { layer, .. })
-            | Some(LayerState::ResizeLayer { layer, .. })
-            | Some(LayerState::RelocateLayer { layer, .. }) => {
-                self.active_layer = Some(LayerState::IdleLayer { layer });
+            Some(LayerState::Creating { layer, .. })
+            | Some(LayerState::Resize { layer, .. })
+            | Some(LayerState::Relocate { layer, .. }) => {
+                self.active_layer = Some(LayerState::Idle { layer });
             }
             _ => {}
         }
@@ -145,7 +145,7 @@ impl Layers {
 
     fn set_cursor(&self, point: Point, canvas: &Canvas) {
         match self.active_layer {
-            Some(LayerState::IdleLayer { layer }) => {
+            Some(LayerState::Idle { layer }) => {
                 let maybe_edge = self.layers[layer].point_over_edge(canvas, point);
                 if let Some(edge) = maybe_edge {
                     edge.set_cursor(canvas.canvas())
@@ -153,7 +153,7 @@ impl Layers {
                     set_default_cursor(canvas)
                 }
             }
-            Some(LayerState::ResizeLayer { edge, .. }) => edge.set_cursor(canvas.canvas()),
+            Some(LayerState::Resize { edge, .. }) => edge.set_cursor(canvas.canvas()),
             _ => set_default_cursor(canvas),
         }
     }
@@ -171,9 +171,9 @@ impl Layers {
     }
 }
 
-impl Into<Rc<RefCell<Layers>>> for Layers {
-    fn into(self) -> Rc<RefCell<Layers>> {
-        Rc::new(RefCell::new(self))
+impl From<Layers> for Rc<RefCell<Layers>> {
+    fn from(layers: Layers) -> Self {
+        Rc::new(RefCell::new(layers))
     }
 }
 

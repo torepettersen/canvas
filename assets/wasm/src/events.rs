@@ -26,6 +26,7 @@ impl Point {
     }
 }
 
+#[allow(clippy::enum_variant_names)]
 pub enum Event {
     MouseDown { point: Point },
     MouseMove { point: Point },

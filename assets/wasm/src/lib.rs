@@ -1,3 +1,5 @@
+#![allow(clippy::new_without_default)]
+
 mod canvas;
 mod events;
 pub mod iter_ext;

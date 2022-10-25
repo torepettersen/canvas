@@ -38,10 +38,10 @@ impl Canvas {
                 .draw_outline(context);
         }
         match layers.active_layer() {
-            Some(LayerState::CreatingLayer { layer, .. })
-            | Some(LayerState::IdleLayer { layer, .. })
-            | Some(LayerState::ResizeLayer { layer, .. })
-            | Some(LayerState::RelocateLayer { layer, .. }) => {
+            Some(LayerState::Creating { layer, .. })
+            | Some(LayerState::Idle { layer, .. })
+            | Some(LayerState::Resize { layer, .. })
+            | Some(LayerState::Relocate { layer, .. }) => {
                 layers.layers()[*layer].object.draw_active(context);
             }
             _ => {}
@@ -65,9 +65,9 @@ impl Canvas {
     }
 }
 
-impl Into<Rc<RefCell<Canvas>>> for Canvas {
-    fn into(self) -> Rc<RefCell<Canvas>> {
-        Rc::new(RefCell::new(self))
+impl From<Canvas> for Rc<RefCell<Canvas>> {
+    fn from(canvas: Canvas) -> Self {
+        Rc::new(RefCell::new(canvas))
     }
 }
 
