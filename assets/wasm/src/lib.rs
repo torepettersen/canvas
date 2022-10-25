@@ -1,8 +1,8 @@
 mod canvas;
 mod events;
+pub mod iter_ext;
 mod layers;
 mod objects;
-// mod renderer;
 mod state;
 
 #[macro_use]

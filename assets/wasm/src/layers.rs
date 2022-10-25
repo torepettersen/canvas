@@ -1,6 +1,7 @@
 use crate::canvas::Canvas;
 use crate::events::Event;
 use crate::events::Point;
+use crate::iter_ext::IterExt;
 use crate::objects::Edge;
 use crate::objects::Object;
 use crate::objects::Rect;
@@ -12,11 +13,7 @@ pub struct Layer {
 }
 
 impl Layer {
-    pub fn point_over_edge(
-        &self,
-        canvas: &Canvas,
-        point: Point,
-    ) -> Option<Edge> {
+    pub fn point_over_edge(&self, canvas: &Canvas, point: Point) -> Option<Edge> {
         let context = canvas.context();
         self.object
             .edges()
