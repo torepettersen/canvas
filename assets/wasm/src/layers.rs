@@ -1,7 +1,7 @@
+use crate::alignments::Alignment;
 use crate::canvas::Canvas;
 use crate::events::Event;
 use crate::events::Point;
-
 use crate::objects::Edge;
 use crate::objects::Object;
 use crate::objects::Rect;
@@ -34,11 +34,17 @@ pub struct Layers {
     layers: Vec<Layer>,
     active_layer: Option<LayerState>,
     outlined_layer: Option<usize>,
+    alignments: Vec<Alignment>,
 }
 
 impl Layers {
     pub fn new() -> Self {
-        Layers { layers: Vec::new(), active_layer: None, outlined_layer: None }
+        Layers {
+            layers: Vec::new(),
+            active_layer: None,
+            outlined_layer: None,
+            alignments: Vec::new(),
+        }
     }
 
     pub fn layers(&self) -> &Vec<Layer> {
@@ -51,6 +57,10 @@ impl Layers {
 
     pub fn active_layer(&self) -> &Option<LayerState> {
         &self.active_layer
+    }
+
+    pub fn alignments(&self) -> &Vec<Alignment> {
+        &self.alignments
     }
 
     pub fn on_event(&mut self, event: Event, canvas: &Canvas) {
@@ -113,6 +123,7 @@ impl Layers {
             }
             Some(LayerState::Relocate { layer, grab_point }) => {
                 self.layers[layer].object.relocate(point, grab_point);
+                self.alignments = Alignment::from_layers(&self.layers, layer);
                 canvas.render(self);
             }
             _ => {

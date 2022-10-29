@@ -1,6 +1,8 @@
+use crate::alignments::Alignment;
 use crate::events::Point;
 use crate::layers::LayerState;
 use crate::layers::Layers;
+use crate::layers::Layer;
 use std::cell::RefCell;
 use std::rc::Rc;
 use wasm_bindgen::JsCast;
@@ -42,7 +44,9 @@ impl Canvas {
             | Some(LayerState::Idle { layer, .. })
             | Some(LayerState::Resize { layer, .. })
             | Some(LayerState::Relocate { layer, .. }) => {
-                layers.layers()[*layer].object.draw_active(context);
+                let active_layer = &layers.layers()[*layer];
+                active_layer.object.draw_active(context);
+                draw_alignments(active_layer, layers.alignments(), context);
             }
             _ => {}
         }
@@ -63,6 +67,33 @@ impl Canvas {
             y: event.client_y() as f64 - rect.top(),
         }
     }
+}
+
+fn draw_alignments(layer: &Layer, alignments: &[Alignment], context: &CanvasRenderingContext2d) {
+    let top = layer.object.top();
+    let left = &layer.object.left();
+    let right = &layer.object.right();
+    // crate::log!("{:?}", alignments);
+    let iter = alignments.iter().flat_map(|alignment| {
+        if let Alignment::Y { y, left: x1, right: x2 } = *alignment {
+            if y == top {
+                vec![x1, x2]
+            } else {
+                Vec::new()
+            }
+        } else {
+            Vec::new()
+        }
+    })
+        .chain(vec![*left, *right]);
+
+    let max = iter.clone().reduce(f64::max).unwrap();
+    let min = iter.reduce(f64::min).unwrap();
+
+    context.begin_path();
+    context.move_to(min, top);
+    context.line_to(max, top);
+    context.stroke();
 }
 
 impl From<Canvas> for Rc<RefCell<Canvas>> {

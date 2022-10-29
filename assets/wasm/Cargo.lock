@@ -3,6 +3,12 @@
 version = 3
 
 [[package]]
+name = "array_tool"
+version = "1.0.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "8f8cb5d814eb646a863c4f24978cff2880c4be96ad8cde2c0f0678732902e271"
+
+[[package]]
 name = "autocfg"
 version = "1.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -111,6 +117,7 @@ checksum = "dcc811dc4066ac62f84f11307873c4850cb653bfa9b1719cee2bd2204a4bc5dd"
 name = "wasm"
 version = "0.1.0"
 dependencies = [
+ "array_tool",
  "js-sys",
  "tokio",
  "wasm-bindgen",

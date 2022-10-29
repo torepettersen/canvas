@@ -1,8 +1,9 @@
 #![allow(clippy::new_without_default)]
 
+mod alignments;
 mod canvas;
 mod events;
-pub mod iter_ext;
+mod iter_ext;
 mod layers;
 mod objects;
 mod state;

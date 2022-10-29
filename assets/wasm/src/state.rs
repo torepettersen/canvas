@@ -56,7 +56,7 @@ impl State {
     }
 }
 
-impl From<State> for Rc<RefCell<State>>  {
+impl From<State> for Rc<RefCell<State>> {
     fn from(state: State) -> Self {
         Rc::new(RefCell::new(state))
     }

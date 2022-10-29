@@ -41,4 +41,3 @@ fn skips_nth() {
     assert_eq!(iter.next(), Some(&9));
     assert_eq!(iter.next(), None);
 }
-
